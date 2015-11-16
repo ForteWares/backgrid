@@ -40,14 +40,7 @@ var Body = Backgrid.Body = Backbone.View.extend({
     }
 
     this.row = options.row || Row;
-    this.rows = this.collection.map(function (model) {
-      var row = new this.row({
-        columns: this.columns,
-        model: model
-      });
-
-      return row;
-    }, this);
+    this.initializeRows();
 
     this.emptyText = options.emptyText;
     this._unshiftEmptyRowMayBe();
@@ -59,6 +52,18 @@ var Body = Backgrid.Body = Backbone.View.extend({
     this.listenTo(collection, "reset", this.refresh);
     this.listenTo(collection, "backgrid:sort", this.sort);
     this.listenTo(collection, "backgrid:edited", this.moveToNextCell);
+  },
+
+  initializeRows: function() {
+    this.rows = this.collection.map(function (model) {
+      var row = new this.row({
+        columns: this.columns,
+        model: model
+      });
+
+      return row;
+    }, this);
+
   },
 
   _unshiftEmptyRowMayBe: function () {
@@ -183,14 +188,7 @@ var Body = Backgrid.Body = Backbone.View.extend({
       this.rows[i].remove();
     }
 
-    this.rows = this.collection.map(function (model) {
-      var row = new this.row({
-        columns: this.columns,
-        model: model
-      });
-
-      return row;
-    }, this);
+    this.initializeRows();
     this._unshiftEmptyRowMayBe();
 
     this.render();
@@ -338,13 +336,15 @@ var Body = Backgrid.Body = Backbone.View.extend({
      event
   */
   moveToNextCell: function (model, column, command) {
-    var i = this.collection.indexOf(model);
+    //var i = this.collection.indexOf(model);
+    var i = _.findIndex(this.rows, function(r,n) { return r.model === model; }) // [ea] for filtered collections
+
     var j = this.columns.indexOf(column);
     var cell, renderable, editable, m, n;
-    
+
     // return if model being edited in a different grid
     if (j === -1) return this;
-    
+
     this.rows[i].cells[j].exitEditMode();
 
     if (command.moveUp() || command.moveDown() || command.moveLeft() ||
