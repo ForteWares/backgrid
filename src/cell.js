@@ -864,7 +864,13 @@ var SelectCellEditor = Backgrid.SelectCellEditor = CellEditor.extend({
   save: function (e) {
     var model = this.model;
     var column = this.column;
-    model.set(column.get("name"), this.formatter.toRaw(this.$el.val(), model));
+    var field = column.get("name");
+    var updated = this.formatter.toRaw(this.$el.val(), model);
+    var current = model.get(field);
+    // [ea] when the select looses focus, it triggers a "change" event, and model.set is called twice, model.changed and model.hasChanged() is reset
+    if (!_.isEqual(updated, current)) {
+      model.set(field, value);
+    }
   },
 
   /**
